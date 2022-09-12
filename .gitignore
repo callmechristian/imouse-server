@@ -1,0 +1,2 @@
+# ignore node modules and mention them in the readme.md
+/node/node_modules
