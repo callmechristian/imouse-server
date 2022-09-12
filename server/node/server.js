@@ -14,6 +14,13 @@ wss.on('connection', (ws) => {
       const message = JSON.parse(messageAsString);
       const metadata = clients.get(ws);
 
+      // debug message
+      if(message != undefined) {
+        console.log(message);
+      }
+
+      
+
       message.sender = metadata.id;
       message.color = metadata.color;
 

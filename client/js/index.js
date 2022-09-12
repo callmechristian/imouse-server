@@ -12,6 +12,11 @@
         const messageBody = { x: evt.clientX, y: evt.clientY };
         ws.send(JSON.stringify(messageBody));
     };
+
+    document.body.onmousedown = (evt) => {
+        const messageBody = { msg: "Fuck you Dalim!" };
+        ws.send(JSON.stringify(messageBody));
+    };
         
     async function connectToServer() {    
         const ws = new WebSocket('ws://localhost:7071/ws');
