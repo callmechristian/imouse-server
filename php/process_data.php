@@ -1,4 +1,0 @@
-<?PHP
-    $CURRENT_POSITION = 
-    $DESIRED_POSITION =
-?>
