@@ -1,3 +1,5 @@
+var data = require('process_data');
+
 const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 7071 });
@@ -15,7 +17,7 @@ wss.on('connection', (ws) => {
       const metadata = clients.get(ws);
 
       // debug message
-      if(message != undefined) {
+      if(message.msg != undefined) {
         console.log(message);
       }
 
