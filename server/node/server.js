@@ -21,6 +21,10 @@ wss.on('connection', (ws) => {
         console.log(message);
       }
 
+      // process the data
+      var vx, vy, vz = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 60);
+      var x, y, z = data.estimateNewMouseDisplacement(0, 0, 0, vx, vy, vz);
+      //run py script with new x y z
       
 
       message.sender = metadata.id;

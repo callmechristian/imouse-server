@@ -6,3 +6,11 @@ function processAccellerationToVelocity(ax, ay, az, vx, vy, vz, dataFrequency) {
 
     return {velocity_x, velocity_y, velocity_z};
 }
+
+function estimateNewMouseDisplacement(x, y, z, vx, vy, vz) {
+    next_x = x + vx;
+    next_y = y + vy;
+    next_z = z + vz;
+
+    return {next_x, next_y, next_z}
+}
