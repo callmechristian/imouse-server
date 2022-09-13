@@ -2,7 +2,7 @@ var data = require('./process_data');
 var log = require('../../logs/usagelog.json');
 
 
-import {PythonShell} from 'python-shell';
+let {PythonShell} = require('python-shell')
 let pyshell = new PythonShell('../python/movemouse.py');
 
 // sends a message to the Python script via stdin
@@ -13,7 +13,7 @@ for (const a in log){
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
   console.log(d)
 
-  pyshell.send('hello');
+  pyshell.send('100 100');
 
 }
 
@@ -35,16 +35,9 @@ pyshell.end(function (err,code,signal) {
 var options = {
 scriptPath: '../python/'
 };
-let {PythonShell} = require('python-shell')
-//you can use error handling to see if there are any errors
-PythonShell.run('my_script.py 100 100', options, function (err, results) { 
-  console.log("fe")
-})
-//your code
 
 const WebSocket = require('ws');
 
-const { exec } = require('node:child_process')
 
 const wss = new WebSocket.Server({ port: 7071 });
 const clients = new Map();
