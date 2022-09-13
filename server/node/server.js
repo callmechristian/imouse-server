@@ -2,12 +2,45 @@ var data = require('./process_data');
 var log = require('../../logs/usagelog.json');
 
 
+import {PythonShell} from 'python-shell';
+let pyshell = new PythonShell('../python/movemouse.py');
+
+// sends a message to the Python script via stdin
+
 for (const a in log){
   //console.log(log[a].x)
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
   console.log(d)
+
+  pyshell.send('hello');
+
 }
+
+pyshell.on('message', function (message) {
+  // received a message sent from the Python script (a simple "print" statement)
+  console.log(message);
+});
+
+// end the input stream and allow the process to exit
+pyshell.end(function (err,code,signal) {
+  if (err) throw err;
+  console.log('The exit code was: ' + code);
+  console.log('The exit signal was: ' + signal);
+  console.log('finished');
+});
+
+
+
+var options = {
+scriptPath: '../python/'
+};
+let {PythonShell} = require('python-shell')
+//you can use error handling to see if there are any errors
+PythonShell.run('my_script.py 100 100', options, function (err, results) { 
+  console.log("fe")
+})
+//your code
 
 const WebSocket = require('ws');
 
