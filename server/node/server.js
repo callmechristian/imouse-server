@@ -13,18 +13,6 @@ const WebSocket = require('ws');
 
 const { exec } = require('node:child_process')
 
-// run the `ls` command using exec
-exec('python ../python/movemouse.py 100 100', (err, output) => {
-    // once the command has completed, the callback function is called
-    if (err) {
-        // log and return if we encounter an error
-        console.error("could not execute command: ", err)
-        return
-    }
-    // log the output received from the command
-    console.log("Output: \n", output)
-})
-
 const wss = new WebSocket.Server({ port: 7071 });
 const clients = new Map();
 
@@ -41,8 +29,8 @@ wss.on('connection', (ws) => {
 
       // debug message
       if(message.msg != undefined) {
-        console.log(message);
-        console.log(message.x)
+        // console.log(message);
+        // console.log(message.x)
       }
 
       // process the data
@@ -51,10 +39,22 @@ wss.on('connection', (ws) => {
       //run py script with new x y z
       
 
-      console.log(v.vx + " " + v.vy + " " + v.vz);
-      console.log("Computed x: " + d.x + " Computed y: " + d.y);
-      // move mouse
-      const pythonProcess = spawn('python3',["/python/movemouse.py", d.x, d.y])
+      // console.log(v.vx + " " + v.vy + " " + v.vz);
+      // console.log("Computed x: " + d.x + " Computed y: " + d.y);
+      // move mouse using shell
+      var str = 'python ../python/movemouse.py ' + Math.floor(d.x) + ' ' + Math.floor(d.y);
+      // console.log(str);
+
+      exec(str, (err, output) => {
+        // once the command has completed, the callback function is called
+        if (err) {
+            // log and return if we encounter an error
+            console.error("could not execute command: ", err)
+            return
+        }
+        // log the output received from the command
+        console.log("Output: \n", output)
+      })
 
       message.sender = metadata.id;
       message.color = metadata.color;
