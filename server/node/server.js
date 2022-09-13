@@ -1,4 +1,4 @@
-var data = require('./process_data');
+import {processAccellerationToVelocity, estimateNewMouseDisplacement} from 'process_data.js';
 
 const WebSocket = require('ws');
 const spawn = require("child_process").spawn;
@@ -23,12 +23,13 @@ wss.on('connection', (ws) => {
       }
 
       // process the data
-      var vx, vy, vz = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 60);
-      var distx, disty, distz = data.estimateNewMouseDisplacement(0, 0, 0, vx, vy, vz);
+      var v = processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 60);
+      var d = estimateNewMouseDisplacement(0, 0, 0, v.x, v.y, v.z);
       //run py script with new x y z
       
 
-      console.log("Computed x: " + distx + " Computed y: " + disty);
+      console.log(v.x + " " + v.y + " " + v.z);
+      console.log("Computed x: " + d.x + " Computed y: " + d.y);
       // move mouse
       //const pythonProcess = spawn('python',["../python/movemouse.py", distx, disty])
 
