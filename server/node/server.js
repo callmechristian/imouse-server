@@ -9,11 +9,16 @@ let pyshell = new PythonShell('../python/movemouse.py');
 
 for (const a in log){
   //console.log(log[a].x)
+  // var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
+  // var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
+
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
-  console.log(d)
 
-  pyshell.send('100 100');
+  console.log(d)
+  var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
+
+  pyshell.send(str);
 
 }
 
