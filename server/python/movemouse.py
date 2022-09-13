@@ -1,7 +1,8 @@
+from pickletools import pyunicode
 import pyautogui,sys
 
-distx = 0
-disty = 0
-distz = 0
+def moveMouse(distx, disty):
+    x,y = pyautogui.position()
+    pyautogui.moveTo(x + distx, y + disty)
 
-function moveMouse(distx, disty, distz)
+moveMouse(sys.argv[1], sys.argv[2])
