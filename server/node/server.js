@@ -15,7 +15,7 @@ for (const a in log){
   // var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
 
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
-  var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
+  var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, 1/60);
 
   console.log(d)
   var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
@@ -34,10 +34,28 @@ scriptPath: '../python/'
 };
 
 const WebSocket = require('ws');
+const { exit } = require('process');
 
 
 const wss = new WebSocket.Server({ port: 7071 });
 const clients = new Map();
+
+var prevTime = Date.now();
+
+function printLastDisplacement() {
+   process.exit(0);
+}
+
+var dist_x = 0;
+var dist_y = 0;
+
+function moveTheMouse() {
+  var str = Math.floor(dist_x) + ' ' + Math.floor(dist_y);
+  // console.log(str);
+  pyshell.send(str);
+  dist_x = 0;
+  dist_y = 0;
+}
 
 wss.on('connection', (ws) => {
     const id = uuidv4();
@@ -46,40 +64,57 @@ wss.on('connection', (ws) => {
 
     clients.set(ws, metadata);
 
+    setInterval(moveTheMouse, 100);
+
     ws.on('message', (messageAsString) => {
+      time = Date.now();
+      dt = time - prevTime;
+      prevTime = time;
+
       const message = JSON.parse(messageAsString);
       const metadata = clients.get(ws);
 
       // debug message
-      if(message.msg != undefined) {
-        var obj = {
-          "x": message.x,
-          "y": message.y,
-          "z": message.z
+      if(message != undefined) {
+        var obj = "{ 'x': " + message.x + ", 'y': " + message.y + ",'z': " + message.z + "},\n";
+
+        // console.log(obj);
+        
+        var v = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, dt/1000);
+
+        if(Math.abs(message.x) <= 0.01 && Math.abs(message.y) <= 0.02) {
+          // console.log("Reset vel");
+          v.vx = 0;
+          v.vy = 0;
+          v.vz = 0;
         }
 
-        fs.appendFile('../../logs/lastSession.json', obj.toString(), err => {
-          if (err) {
-            console.error(err);
-          }
-        });
+        var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
+
+        dist_x = d.x*1000000;
+        dist_y = d.y*1000000;
+        // console.log(dist_x);
+        // console.log(dist_y);
+
+        //write to file log
+        // fs.appendFile('../../logs/lastSession.json', obj.toString(), err => {
+        //   if (err) {
+        //     console.error(err);
+        //   }
+        // });
         
-        console.log(message);
         // console.log(message.x)
       }
 
       // process the data
-      var v = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 1/60);
-      var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
       //run py script with new x y z
+
       
 
       // console.log(v.vx + " " + v.vy + " " + v.vz);
       // console.log("Computed x: " + d.x + " Computed y: " + d.y);
       // move mouse using shell
-      var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
-      // console.log(str);
-      pyshell.send(str);
+      
 
       message.sender = metadata.id;
       message.color = metadata.color;

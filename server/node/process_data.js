@@ -14,10 +14,10 @@ module.exports = {
         return _ret;
     },
 
-    estimateNewMouseDisplacement: function(x, y, z, vx, vy, vz) {
-        next_x = x + vx;
-        next_y = y + vy;
-        next_z = z + vz;
+    estimateNewMouseDisplacement: function(x, y, z, vx, vy, vz, dataFrequency) {
+        next_x = x + vx*dataFrequency;
+        next_y = y + vy*dataFrequency;
+        next_z = z + vz*dataFrequency;
 
         var _ret = {
             x: next_x,

@@ -4,8 +4,7 @@ import pyautogui,sys
 import sys
  
 def moveMouse(distx, disty):
-    x,y = pyautogui.position()
-    pyautogui.moveTo(x + int(distx), y + int(disty))
+    pyautogui.move(int(distx), int(disty))
 
 
 for line in sys.stdin:
