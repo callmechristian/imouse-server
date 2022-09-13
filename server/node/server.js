@@ -5,6 +5,8 @@ var log = require('../../logs/usagelog.json');
 let {PythonShell} = require('python-shell')
 let pyshell = new PythonShell('../python/movemouse.py');
 
+const fs = require('fs');
+
 // sends a message to the Python script via stdin
 
 for (const a in log){
@@ -18,7 +20,7 @@ for (const a in log){
   console.log(d)
   var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
 
-  pyshell.send(str);
+  // pyshell.send(str);
 
 }
 
@@ -26,16 +28,6 @@ pyshell.on('message', function (message) {
   // received a message sent from the Python script (a simple "print" statement)
   console.log(message);
 });
-
-// end the input stream and allow the process to exit
-pyshell.end(function (err,code,signal) {
-  if (err) throw err;
-  console.log('The exit code was: ' + code);
-  console.log('The exit signal was: ' + signal);
-  console.log('finished');
-});
-
-
 
 var options = {
 scriptPath: '../python/'
@@ -60,12 +52,24 @@ wss.on('connection', (ws) => {
 
       // debug message
       if(message.msg != undefined) {
-        // console.log(message);
+        var obj = {
+          "x": message.x,
+          "y": message.y,
+          "z": message.z
+        }
+
+        fs.appendFile('../../logs/lastSession.json', obj.toString(), err => {
+          if (err) {
+            console.error(err);
+          }
+        });
+        
+        console.log(message);
         // console.log(message.x)
       }
 
       // process the data
-      var v = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 60);
+      var v = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, 1/60);
       var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz);
       //run py script with new x y z
       
@@ -73,19 +77,9 @@ wss.on('connection', (ws) => {
       // console.log(v.vx + " " + v.vy + " " + v.vz);
       // console.log("Computed x: " + d.x + " Computed y: " + d.y);
       // move mouse using shell
-      var str = 'python ../python/movemouse.py ' + Math.floor(d.x) + ' ' + Math.floor(d.y);
+      var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
       // console.log(str);
-
-      exec(str, (err, output) => {
-        // once the command has completed, the callback function is called
-        if (err) {
-            // log and return if we encounter an error
-            console.error("could not execute command: ", err)
-            return
-        }
-        // log the output received from the command
-        console.log("Output: \n", output)
-      })
+      pyshell.send(str);
 
       message.sender = metadata.id;
       message.color = metadata.color;
@@ -108,3 +102,10 @@ function uuidv4() {
 }
 
 console.log("wss up");
+// end the input stream and allow the process to exit
+// pyshell.end(function (err,code,signal) {
+//   if (err) throw err;
+//   console.log('The exit code was: ' + code);
+//   console.log('The exit signal was: ' + signal);
+//   console.log('finished');
+// });
