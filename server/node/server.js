@@ -1,4 +1,14 @@
+
 var data = require('./process_data');
+var log = require('../../logs/usagelog.json');
+
+
+for (const a in log){
+  //console.log(log[a].x)
+  var vx, vy, vz = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
+  var distx, disty, distz = data.estimateNewMouseDisplacement(0, 0, 0, vx, vy, vz);
+  console.log(distx)
+}
 
 const WebSocket = require('ws');
 const spawn = require("child_process").spawn;
@@ -19,7 +29,8 @@ wss.on('connection', (ws) => {
 
       // debug message
       if(message.msg != undefined) {
-        // console.log(message);
+        console.log(message);
+        console.log(message.x)
       }
 
       // process the data
