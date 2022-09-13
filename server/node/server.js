@@ -1,4 +1,4 @@
-var data = require('process_data');
+var data = require('./process_data');
 
 const WebSocket = require('ws');
 
