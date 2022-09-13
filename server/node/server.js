@@ -10,7 +10,20 @@ for (const a in log){
 }
 
 const WebSocket = require('ws');
-const spawn = require("child_process").spawn;
+
+const { exec } = require('node:child_process')
+
+// run the `ls` command using exec
+exec('python ../python/movemouse.py 100 100', (err, output) => {
+    // once the command has completed, the callback function is called
+    if (err) {
+        // log and return if we encounter an error
+        console.error("could not execute command: ", err)
+        return
+    }
+    // log the output received from the command
+    console.log("Output: \n", output)
+})
 
 const wss = new WebSocket.Server({ port: 7071 });
 const clients = new Map();
@@ -41,7 +54,7 @@ wss.on('connection', (ws) => {
       console.log(v.vx + " " + v.vy + " " + v.vz);
       console.log("Computed x: " + d.x + " Computed y: " + d.y);
       // move mouse
-      //const pythonProcess = spawn('python',["../python/movemouse.py", distx, disty])
+      const pythonProcess = spawn('python3',["/python/movemouse.py", d.x, d.y])
 
       message.sender = metadata.id;
       message.color = metadata.color;
