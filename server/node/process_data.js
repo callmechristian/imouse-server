@@ -5,7 +5,13 @@ module.exports = {
         velocity_y = vy + ay*dataFrequency;
         velocity_z = vz + az*dataFrequency;
 
-        return {velocity_x, velocity_y, velocity_z};
+        var _ret = {
+            vx: velocity_x,
+            vy: velocity_y,
+            vz: velocity_z
+        }
+
+        return _ret;
     },
 
     estimateNewMouseDisplacement: function(x, y, z, vx, vy, vz) {
@@ -13,6 +19,12 @@ module.exports = {
         next_y = y + vy;
         next_z = z + vz;
 
-        return {next_x, next_y, next_z}
+        var _ret = {
+            x: next_x,
+            y: next_y,
+            z: next_z
+        }
+
+        return _ret;
     }
 };
