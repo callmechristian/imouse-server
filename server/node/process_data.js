@@ -1,4 +1,5 @@
-export const processAccellerationToVelocity = (ax, ay, az, vx, vy, vz, dataFrequency) => {
+module.exports = {
+    processAccellerationToVelocity: function(ax, ay, az, vx, vy, vz, dataFrequency) {
 
         velocity_x = vx + ax*dataFrequency;
         velocity_y = vy + ay*dataFrequency;
@@ -11,9 +12,9 @@ export const processAccellerationToVelocity = (ax, ay, az, vx, vy, vz, dataFrequ
         }
 
         return _ret;
-}
+    },
 
-export const estimateNewMouseDisplacement = (x, y, z, vx, vy, vz) => {
+    estimateNewMouseDisplacement: function(x, y, z, vx, vy, vz) {
         next_x = x + vx;
         next_y = y + vy;
         next_z = z + vz;
@@ -25,4 +26,5 @@ export const estimateNewMouseDisplacement = (x, y, z, vx, vy, vz) => {
         }
 
         return _ret;
-}
+    }
+};
