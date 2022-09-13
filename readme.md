@@ -1,4 +1,4 @@
 # Mouse server and client
 
 ## Requirements
-npm install ws
+npm install websocket
