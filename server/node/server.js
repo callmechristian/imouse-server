@@ -14,7 +14,6 @@ data.estimateAttitude(0,1,-1,20*Math.pow(10,-9),20*Math.pow(10,-9),20*Math.pow(1
 // exit()
 
 // sends a message to the Python script via stdin
-// sends a message to the Python script via stdin
 for (const a in log){
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, 1/60);
@@ -58,8 +57,6 @@ function moveTheMouse() {
 
 var offsets = meanOffset.getMeanOffsets();
 
-
-
 wss.on('connection', (ws) => {
     const id = uuidv4();
     const color = Math.floor(Math.random() * 360);
@@ -83,33 +80,11 @@ wss.on('connection', (ws) => {
         // if (v.psi > 0.3){
           console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
         // }
-       
       }
 
       // debug message
       if(message != undefined) {
         var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
-
-        //filter out some noise
-        // if(Math.abs(message.x) <= 0.01 && Math.abs(message.y) <= 0.02) {
-        //   // console.log("Reset vel");
-        //   v.vx = 0;
-        //   v.vy = 0;
-        //   v.vz = 0;
-        // }
-
-      // var obj = "{'x': " + message.x + ", 'y': " + message.y + ", 'z': " + message.z + "}\n";
-      // // fs.appendFile("../../logs/log1.json", obj)
-
-      // fs.appendFile("../../logs/log1.json", obj.toString(), (err) => {
-      //   if (err) {
-      //     console.log(err);
-      //   }
-      //   else {
-      //     // Get the file contents after the append operation
-      //     console.log("\nFile appended.");
-      //  }
-      // });
 
         //computed distance from velocity
         var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
