@@ -29,7 +29,7 @@ module.exports = {
         return _ret;
     },
 
-    estimateAttitude: function(){
+    estimateAttitude: function(a_x, a_y, a_z, m_x, m_y, m_z){
         let Math = require('mathjs')
 
         phi = pi/3
@@ -45,7 +45,6 @@ module.exports = {
         a_y = a_b[1]
         a_z = a_b[2]
 
-        console.log(a_x)
 
         phi_hat = asin(a_x/g)
         theta_hat = atan(a_y/a_z)
@@ -56,6 +55,9 @@ module.exports = {
 
         m_n = multiply([cos(-I)*cos(D), cos(-I)*sin(D),sin(abs(I))], m)
 
+        Cn_b = matrix([[cos(theta)*cos(psi),cos(theta)*sin(psi),-sin(theta)],
+            [sin(phi)*sin(theta)*cos(psi)-sin(psi)*cos(phi), sin(phi)*sin(theta)*sin(psi)+cos(phi)*cos(psi),  sin(phi)*cos(theta)],
+            [cos(phi)*sin(theta)*cos(psi)+sin(phi)*sin(psi), cos(phi)*sin(theta)*sin(psi)-sin(phi)*cos(psi), cos(phi)*cos(theta)]])
 
         Cn_b = matrix([[cos(theta)*cos(psi),cos(theta)*sin(psi),-sin(theta)],
             [sin(phi)*sin(theta)*cos(psi)-sin(psi)*cos(phi), sin(phi)*sin(theta)*sin(psi)+cos(phi)*cos(psi),  sin(phi)*cos(theta)],
@@ -63,17 +65,25 @@ module.exports = {
         
         m_b = multiply(Cn_b, m_n)
 
-        m_x = m_b._data[0]
-        m_y = m_b._data[1]
-        m_z = m_b._data[2]
+        // m_x = m_b._data[0]
+        // m_y = m_b._data[1]
+        // m_z = m_b._data[2]
+
 
         nom = cos(phi_hat)*m_y-sin(phi_hat)*m_z
         denom = cos(theta_hat)*m_x+sin(phi_hat)*sin(theta_hat)*m_y+cos(phi_hat)*sin(theta_hat)*m_z
 
 
         psi_hat = D-atan(divide(nom,denom))
-        console.log(theta_hat)
-        console.log(phi_hat)
-        console.log(psi_hat)
+        // console.log(theta_hat)
+        // console.log(phi_hat)
+        // console.log(psi_hat)
+        var _ret = {
+            phi: phi_hat,
+            theta: theta_hat,
+            psi: psi_hat
+        }
+        
+        return _ret
     }
 };

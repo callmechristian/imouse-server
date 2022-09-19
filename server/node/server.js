@@ -10,9 +10,9 @@ const fs = require('fs');
 
 const {exit} = require('process');
 
-data.estimateAttitude()
-
+data.estimateAttitude(0,1,-1,20*Math.pow(10,-9),20*Math.pow(10,-9),20*Math.pow(10,-9))
 // exit()
+
 // sends a message to the Python script via stdin
 // sends a message to the Python script via stdin
 for (const a in log){
@@ -21,9 +21,10 @@ for (const a in log){
 
   // console.log(d);
   var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
-
+  
   // pyshell.send(str);
 }
+
 
 //for debug purposes
 /*
@@ -68,6 +69,7 @@ wss.on('connection', (ws) => {
 
     //only displace mouse every 100ms
     setInterval(moveTheMouse, 100);
+    console.log('connected')
 
     ws.on('message', (messageAsString) => {
       time = Date.now();
@@ -75,6 +77,14 @@ wss.on('connection', (ws) => {
       prevTime = time;
 
       const message = JSON.parse(messageAsString);
+      // console.log(message)
+      if(message != undefined) {
+        var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
+        if (v.psi > 0.3){
+          console.log('roll: ', v.phi*180/Math.Pi, 'pitch: ', v.theta*180/Math.Pi, 'yaw: ', v.psi*180/Math.Pi)
+        }
+       
+      }
 
       // debug message
       if(message != undefined) {
