@@ -1,5 +1,6 @@
 var data = require('./process_data');
 var log = require('../../logs/usagelog.json');
+var meanOffset = require('./determine_offset');
 
 
 let {PythonShell} = require('python-shell')
@@ -17,16 +18,15 @@ for (const a in log){
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, 1/60);
 
-  console.log(d)
+  // console.log(d);
   var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
 
   // pyshell.send(str);
-
 }
 
 pyshell.on('message', function (message) {
   // received a message sent from the Python script (a simple "print" statement)
-  console.log(message);
+  console.log("Pymsg: " + message);
 });
 
 var options = {
@@ -57,6 +57,8 @@ function moveTheMouse() {
   dist_y = 0;
 }
 
+var offsets = meanOffset.getMeanOffsets();
+
 wss.on('connection', (ws) => {
     const id = uuidv4();
     const color = Math.floor(Math.random() * 360);
@@ -76,11 +78,7 @@ wss.on('connection', (ws) => {
 
       // debug message
       if(message != undefined) {
-        var obj = "{ 'x': " + message.x + ", 'y': " + message.y + ",'z': " + message.z + "},\n";
-
-        // console.log(obj);
-        
-        var v = data.processAccellerationToVelocity(message.x, message.y, message.z, 0, 0, 0, dt/1000);
+        var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
 
         if(Math.abs(message.x) <= 0.01 && Math.abs(message.y) <= 0.02) {
           // console.log("Reset vel");
@@ -91,12 +89,13 @@ wss.on('connection', (ws) => {
 
         var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
 
-        dist_x = d.x*1000000;
-        dist_y = d.y*1000000;
+        dist_x = d.x*10000;
+        dist_y = d.y*10000;
+        
         // console.log(dist_x);
         // console.log(dist_y);
 
-        //write to file log
+        // write to file log
         // fs.appendFile('../../logs/lastSession.json', obj.toString(), err => {
         //   if (err) {
         //     console.error(err);
