@@ -101,15 +101,15 @@ wss.on('connection', (ws) => {
       var obj = "{'x': " + message.x + ", 'y': " + message.y + ", 'z': " + message.z + "}\n";
       // fs.appendFile("../../logs/log1.json", obj)
 
-      fs.appendFile("../../logs/log1.json", obj.toString(), (err) => {
-        if (err) {
-          console.log(err);
-        }
-        else {
-          // Get the file contents after the append operation
-          console.log("\nFile appended.");
-       }
-      });
+      // fs.appendFile("../../logs/log1.json", obj.toString(), (err) => {
+      //   if (err) {
+      //     console.log(err);
+      //   }
+      //   else {
+      //     // Get the file contents after the append operation
+      //     console.log("\nFile appended.");
+      //  }
+      // });
 
         //computed distance from velocity
         var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
