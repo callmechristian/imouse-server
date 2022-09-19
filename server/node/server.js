@@ -80,9 +80,9 @@ wss.on('connection', (ws) => {
       // console.log(message)
       if(message != undefined) {
         var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
-        if (v.psi > 0.3){
-          console.log('roll: ', v.phi*180/Math.Pi, 'pitch: ', v.theta*180/Math.Pi, 'yaw: ', v.psi*180/Math.Pi)
-        }
+        // if (v.psi > 0.3){
+          console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
+        // }
        
       }
 
@@ -98,8 +98,8 @@ wss.on('connection', (ws) => {
         //   v.vz = 0;
         // }
 
-      var obj = "{'x': " + message.x + ", 'y': " + message.y + ", 'z': " + message.z + "}\n";
-      // fs.appendFile("../../logs/log1.json", obj)
+      // var obj = "{'x': " + message.x + ", 'y': " + message.y + ", 'z': " + message.z + "}\n";
+      // // fs.appendFile("../../logs/log1.json", obj)
 
       // fs.appendFile("../../logs/log1.json", obj.toString(), (err) => {
       //   if (err) {
