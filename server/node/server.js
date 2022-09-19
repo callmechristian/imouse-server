@@ -3,7 +3,7 @@ var log = require('../../logs/usagelog.json');
 var meanOffset = require('./determine_offset');
 
 //math
-import {sin, cos} from 'mathjs';
+const {sin, cos, sqrt, pow, atan, asin} = require('mathjs');
 
 //instantiate python shell with stdin to run in parallel
 let {PythonShell} = require('python-shell')
@@ -11,11 +11,9 @@ let pyshell = new PythonShell('../python/movemouse.py');
 
 const fs = require('fs');
 
-const {exit} = require('process');
-
 data.estimateAttitude()
 
-exit()
+// exit()
 // sends a message to the Python script via stdin
 // sends a message to the Python script via stdin
 for (const a in log){
