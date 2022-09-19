@@ -2,4 +2,5 @@
 
 ## Requirements
 ```npm install websocket```
-```npm```
+
+```npm install mathjs```
