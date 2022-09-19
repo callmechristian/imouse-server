@@ -6,6 +6,14 @@ var meanOffset = require('./determine_offset');
 let {PythonShell} = require('python-shell')
 let pyshell = new PythonShell('../python/movemouse.py');
 
+const fs = require('fs');
+
+const {exit} = require('process');
+
+data.estimateAttitude()
+
+exit()
+// sends a message to the Python script via stdin
 // sends a message to the Python script via stdin
 for (const a in log){
   var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
