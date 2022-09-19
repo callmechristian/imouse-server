@@ -2,9 +2,6 @@ var data = require('./process_data');
 var log = require('../../logs/usagelog.json');
 var meanOffset = require('./determine_offset');
 
-//math
-import {sin, cos} from 'mathjs';
-
 //instantiate python shell with stdin to run in parallel
 let {PythonShell} = require('python-shell')
 let pyshell = new PythonShell('../python/movemouse.py');
@@ -41,7 +38,6 @@ var options = {
 };
 
 const WebSocket = require('ws');
-const { exit } = require('process');
 
 const wss = new WebSocket.Server({ port: 7071 });
 const clients = new Map();
