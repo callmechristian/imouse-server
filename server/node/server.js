@@ -12,7 +12,7 @@ const {exit} = require('process');
 
 data.estimateAttitude()
 
-exit()
+// exit()
 // sends a message to the Python script via stdin
 // sends a message to the Python script via stdin
 for (const a in log){
@@ -57,6 +57,8 @@ function moveTheMouse() {
 
 var offsets = meanOffset.getMeanOffsets();
 
+
+
 wss.on('connection', (ws) => {
     const id = uuidv4();
     const color = Math.floor(Math.random() * 360);
@@ -85,6 +87,19 @@ wss.on('connection', (ws) => {
         //   v.vy = 0;
         //   v.vz = 0;
         // }
+
+      var obj = "{'x': " + message.x + ", 'y': " + message.y + ", 'z': " + message.z + "}\n";
+      // fs.appendFile("../../logs/log1.json", obj)
+
+      fs.appendFile("../../logs/log1.json", obj.toString(), (err) => {
+        if (err) {
+          console.log(err);
+        }
+        else {
+          // Get the file contents after the append operation
+          console.log("\nFile appended.");
+       }
+      });
 
         //computed distance from velocity
         var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
