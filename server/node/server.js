@@ -1,5 +1,5 @@
 var data = require('./process_data');
-var log = require('../../logs/usagelog.json');
+var log1 = require('../../logs/usagelog.json');
 var meanOffset = require('./determine_offset');
 
 //instantiate python shell with stdin to run in parallel
@@ -14,8 +14,8 @@ data.estimateAttitude(0,1,-1,20*Math.pow(10,-9),20*Math.pow(10,-9),20*Math.pow(1
 // exit()
 
 // sends a message to the Python script via stdin
-for (const a in log){
-  var v = data.processAccellerationToVelocity(log[a].x, log[a].y, log[a].z, 0, 0, 0, 60);
+for (const a in log1){
+  var v = data.processAccellerationToVelocity(log1[a].x, log1[a].y, log1[a].z, 0, 0, 0, 60);
   var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, 1/60);
 
   // console.log(d);
