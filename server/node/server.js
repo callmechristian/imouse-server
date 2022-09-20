@@ -68,31 +68,27 @@ wss.on('connection', (ws) => {
     setInterval(moveTheMouse, 100);
     console.log('connected')
 
+    var i = 0
     ws.on('message', (messageAsString) => {
-      time = Date.now();
-      dt = time - prevTime;
-      prevTime = time;
+      i += 1
+      if (i > 60) {
+        i=0
+        time = Date.now();
+        dt = time - prevTime;
+        prevTime = time;
+  
+        const message = JSON.parse(messageAsString);
 
-      const message = JSON.parse(messageAsString);
-      // console.log(message)
-      if(message != undefined) {
+        // console.log('a_x: ', message.x, 'a_y:', message.y,  'a_z: ', message.z)
+        // console.log('a_y: ', message.y, message.m_y)
+        // console.log('m_x: ', message.m_x,'m_y: ', message.m_y,'m_z: ', message.m_z)
+        
         var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
-        // if (v.psi > 0.3){
-          console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
-        // }
+        console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
+
       }
 
-      // debug message
-      if(message != undefined) {
-        var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
-
-        //computed distance from velocity
-        var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
-
-        //amplify displacement
-        dist_x = d.x*10000;
-        dist_y = d.y*10000;
-      }      
+      // }      
     });  
 });
 
