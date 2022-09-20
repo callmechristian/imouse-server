@@ -1,6 +1,7 @@
 var data = require('./process_data');
 var log1 = require('../../logs/usagelog.json');
 var meanOffset = require('./determine_offset');
+var log = require('./logging');
 
 //instantiate python shell with stdin to run in parallel
 let {PythonShell} = require('python-shell')
@@ -76,14 +77,10 @@ wss.on('connection', (ws) => {
       const message = JSON.parse(messageAsString);
       // console.log(message)
       if(message != undefined) {
-        var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
+        var att = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
         // if (v.psi > 0.3){
-          console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
-        // }
-      }
+          console.log('roll: ', att.roll, 'pitch: ', att.pitch, 'yaw: ', att.yaw)
 
-      // debug message
-      if(message != undefined) {
         var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
 
         //computed distance from velocity

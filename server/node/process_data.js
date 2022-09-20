@@ -1,4 +1,7 @@
 const {pi, matrix, abs, sin, cos, sqrt, pow, atan, asin, multiply, divide} = require('mathjs');
+var log = require('./logging');
+const fs = require("fs");
+
 module.exports = {   
     processAccellerationToVelocity: function(ax, ay, az, vx, vy, vz, dataFrequency) {
 
@@ -53,7 +56,7 @@ module.exports = {
         denom = (cos(theta_hat)*m_x)+(sin(phi_hat)*sin(theta_hat)*m_y)+(cos(phi_hat)*sin(theta_hat)*m_z);
 
 
-        psi_hat = D-atan(nom/den)
+        psi_hat = D-atan(nom/denom)
         console.log(theta_hat)
         console.log(phi_hat)
         console.log(psi_hat)
@@ -63,6 +66,25 @@ module.exports = {
         roll = phi_hat*180/pi;
         pitch = theta_hat*180/pi;
         yaw = psi_hat*180/pi;
+
+        var _raw = {
+            a_x: a_x,
+            a_y: a_y,
+            a_z: a_z,
+            m_x: m_x,
+            m_y: m_y,
+            m_z: m_z
+        }
+        fs.appendFile("../../logs/log_accel_magn_raw_1.json", JSON.stringify(_raw) + ",\n", (err) => {
+            if (err) {
+              console.log(err);
+            }
+            else {
+              // Get the file contents after the append operation
+              console.log("\nLogged:" + JSON.stringify(_raw));
+           }
+        });
+
         var _ret = {
             roll: roll,
             pitch: pitch,
