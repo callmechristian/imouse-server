@@ -29,55 +29,40 @@ module.exports = {
         return _ret;
     },
 
-    estimateAttitude: function(a_x, a_y, a_z, m_x, m_y, m_z){
+    estimateAttitude: function(a_y, a_x, a_z, m_y, m_x, m_z){
         let Math = require('mathjs')
 
-        // phi = pi/3
-        // theta = pi/3
-        // psi = pi/4
-        g = 9.81
-        
+        //normalize accelleration
+        g = 9.81;
+        a_x = a_x*g;
+        a_y = a_y*g;
+        a_z = a_z*g;
 
-        // C = [-sin(theta), sin(phi) * cos(theta), cos(phi)*cos(theta)] // Cn_b * e_3
+        theta_hat = asin(a_x/g);
 
-        // a_b = multiply(-g, C)
-        // a_x = a_b[0]
-        // a_y = a_b[1]
-        // a_z = a_b[2]
+        phi_hat = atan(a_y/a_z);
 
+        D = (2 + 31/60 + 48/3600 ) * (pi/180);
 
-        theta_hat = asin(a_x/g)
+        TtonT = pow(10,-9); //tesla to nanotesla
+        m_x = m_x*TtonT;
+        m_y = m_y*TtonT;
+        m_z = m_z*TtonT;
 
-        phi_hat = atan(a_y/a_z)
-
-        D = (2 + 31/60 + 48/3600 )* (pi/180)
-        // I = (59 + 33/60 + 23/3600)* (pi/180)
-        // m = sqrt((23660*pow(10,-9))^2+(821*pow(10,-9))^2+(40209*pow(10,-9))^2)
-
-        // m_n = multiply([cos(-I)*cos(D), cos(-I)*sin(D),sin(abs(I))], m)
-
-        // Cn_b = matrix([[cos(theta)*cos(psi),cos(theta)*sin(psi),-sin(theta)],
-        //     [sin(phi)*sin(theta)*cos(psi)-sin(psi)*cos(phi), sin(phi)*sin(theta)*sin(psi)+cos(phi)*cos(psi),  sin(phi)*cos(theta)],
-        //     [cos(phi)*sin(theta)*cos(psi)+sin(phi)*sin(psi), cos(phi)*sin(theta)*sin(psi)-sin(phi)*cos(psi), cos(phi)*cos(theta)]])
-
-        // m_b = multiply(Cn_b, m_n)
-
-        // m_x = m_b._data[0]
-        // m_y = m_b._data[1]
-        // m_z = m_b._data[2]
+        nom = (cos(phi_hat)*m_y)-(sin(phi_hat)*m_z);
+        denom = (cos(theta_hat)*m_x)+(sin(phi_hat)*sin(theta_hat)*m_y)+(cos(phi_hat)*sin(theta_hat)*m_z);
 
 
-        nom = cos(phi_hat)*m_y-sin(phi_hat)*m_z
-        denom = cos(theta_hat)*m_x+sin(phi_hat)*sin(theta_hat)*m_y+cos(phi_hat)*sin(theta_hat)*m_z
-
-
-        psi_hat = D-atan(divide(nom,denom))
+        psi_hat = D-atan(nom/den)
         console.log(theta_hat)
         console.log(phi_hat)
         console.log(psi_hat)
-        roll = phi_hat*180/pi
-        pitch = theta_hat*180/pi
-        yaw = psi_hat*180/pi
+        // console.log("ax:" + a_x + "\n")
+        console.log("m_x:" + m_x + ", m_y:" + m_y + ", m_z:" + m_z + "\n");
+
+        roll = phi_hat*180/pi;
+        pitch = theta_hat*180/pi;
+        yaw = psi_hat*180/pi;
         var _ret = {
             roll: roll,
             pitch: pitch,
