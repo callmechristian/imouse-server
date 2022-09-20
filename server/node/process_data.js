@@ -46,38 +46,33 @@ module.exports = {
         // a_z = a_b[2]
 
 
-        theta_hat = asin(a_x/g)
+        theta_hat = asin(-a_y*g/g)
 
-        phi_hat = atan(a_y/a_z)
+        phi_hat = atan(-a_x/a_z)
 
         D = (2 + 31/60 + 48/3600 )* (pi/180)
-        // I = (59 + 33/60 + 23/3600)* (pi/180)
-        // m = sqrt((23660*pow(10,-9))^2+(821*pow(10,-9))^2+(40209*pow(10,-9))^2)
 
-        // m_n = multiply([cos(-I)*cos(D), cos(-I)*sin(D),sin(abs(I))], m)
-
-        // Cn_b = matrix([[cos(theta)*cos(psi),cos(theta)*sin(psi),-sin(theta)],
-        //     [sin(phi)*sin(theta)*cos(psi)-sin(psi)*cos(phi), sin(phi)*sin(theta)*sin(psi)+cos(phi)*cos(psi),  sin(phi)*cos(theta)],
-        //     [cos(phi)*sin(theta)*cos(psi)+sin(phi)*sin(psi), cos(phi)*sin(theta)*sin(psi)-sin(phi)*cos(psi), cos(phi)*cos(theta)]])
-
-        // m_b = multiply(Cn_b, m_n)
-
-        // m_x = m_b._data[0]
-        // m_y = m_b._data[1]
-        // m_z = m_b._data[2]
-
-
-        nom = cos(phi_hat)*m_y-sin(phi_hat)*m_z
-        denom = cos(theta_hat)*m_x+sin(phi_hat)*sin(theta_hat)*m_y+cos(phi_hat)*sin(theta_hat)*m_z
+        m_x = m_x * Math.pow(10,-9)
+        m_y = m_y * Math.pow(10,-9)
+        m_z = -m_z * Math.pow(10,-9)
+        nom = cos(phi_hat)*m_x-sin(phi_hat)*m_z
+        denom = cos(theta_hat)*m_y+sin(phi_hat)*sin(theta_hat)*m_x+cos(phi_hat)*sin(theta_hat)*m_z
 
 
         psi_hat = D-atan(divide(nom,denom))
-        console.log(theta_hat)
-        console.log(phi_hat)
-        console.log(psi_hat)
+
         roll = phi_hat*180/pi
         pitch = theta_hat*180/pi
         yaw = psi_hat*180/pi
+
+        // roll = Math.round(roll * 100) / 100
+        // pitch = Math.round(pitch * 100) / 100
+        // yaw =Math.round(yaw * 100) / 100
+
+        roll = Math.round(roll)
+        pitch = Math.round(pitch)
+        yaw =Math.round(yaw)
+        
         var _ret = {
             roll: roll,
             pitch: pitch,
