@@ -47,8 +47,9 @@ const clients = new Map();
 var prevTime = Date.now();
 var dist_x = 0;
 var dist_y = 0;
+var psi_hat = 0;
 
-//called every 100ms
+//called every 50ms
 function moveTheMouse() {
   var str = Math.floor(dist_x) + ' ' + Math.floor(dist_y);
   pyshell.send(str);
@@ -56,7 +57,7 @@ function moveTheMouse() {
   dist_y = 0;
 }
 
-var offsets = meanOffset.getMeanOffsets();
+// var offsets = meanOffset.getMeanOffsets();
 
 wss.on('connection', (ws) => {
     const id = uuidv4();
@@ -65,8 +66,8 @@ wss.on('connection', (ws) => {
 
     clients.set(ws, metadata);
 
-    //only displace mouse every 100ms
-    setInterval(moveTheMouse, 100);
+    //only displace mouse every 50ms
+    setInterval(moveTheMouse, 50);
     console.log('connected')
 
     ws.on('message', (messageAsString) => {
@@ -77,18 +78,19 @@ wss.on('connection', (ws) => {
       const message = JSON.parse(messageAsString);
       // console.log(message)
       if(message != undefined) {
-        var att = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
+        var att = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, message.g_z, dt/60, psi_hat)
         // if (v.psi > 0.3){
-          console.log('roll: ', att.roll, 'pitch: ', att.pitch, 'yaw: ', att.yaw)
+          // console.log('roll: ', att.roll, 'pitch: ', att.pitch, 'yaw: ', att.yaw)
+        psi_hat = att.psi_hat;
 
-        var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
+        // var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
 
-        //computed distance from velocity
-        var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
+        // //computed distance from velocity
+        // var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
 
-        //amplify displacement
-        dist_x = d.x*10000;
-        dist_y = d.y*10000;
+        // //amplify displacement
+        // dist_x = d.x*10000;
+        // dist_y = d.y*10000;
       }      
     });  
 });
