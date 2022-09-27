@@ -7,7 +7,7 @@ const wss = new WebSocket.Server({ port: 7071 });
 //options
 const opt_debug = true;
 
-//timestamps
+//vars
 var dist_x = 0;
 var dist_y = 0;
 var psi_hat = 0;
