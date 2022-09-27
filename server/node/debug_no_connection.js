@@ -2,6 +2,7 @@ const {getCursorPosition, setCursorPosition, sendCursorEvent, cursorEvents} = re
 var data = require('./process_data');
 var datalog = require('../../logs/log_44.json');
 const { estimateAttitude } = require("./process_data");
+const { setRelativeMousePosition } = require("./mouse");
 
 //options
 const opt_debug = true;
@@ -14,16 +15,6 @@ if(opt_debug == true) {
 var psi_hat = 0;
 
 //move mouse relative to the current position
-function relativeMousePosition(_x, _y) {
-    var new_x = 0;
-    var new_y = 0;
-    var currentPos = getCursorPosition();
-
-    new_x = currentPos.x + _x;
-    new_y = currentPos.y + _y;
-
-    setCursorPosition({x:new_x,y:new_y});
-}
 
 console.log("Starting log 44 movement with 60 Hz...\n");
 

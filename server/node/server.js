@@ -12,6 +12,7 @@ var dist_x = 0;
 var dist_y = 0;
 var psi_hat = 0;
 
+//on websocket connect
 wss.on('connection', (ws) => {
     console.log('iPhone connected\n');
 
@@ -33,8 +34,9 @@ wss.on('connection', (ws) => {
     });  
 });
 
+//on websocket exit
 wss.on("close", () => {
 
 });
 
-console.log("wss up");
+console.log("Web socket online...\n");
