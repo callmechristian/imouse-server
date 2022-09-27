@@ -26,37 +26,16 @@ module.exports={
         var newObj = {};
         for(i = 0; i < Object.keys(obj).length; i++) {
             newObj[Object.keys(obj)[i]] = obj[Object.keys(obj)[i]];
-            // console.log(newObj);
         }
-        fs.appendFile(absPath, JSON.stringify(newObj), (err) => {
-            if (err) {
-              console.log(err);
-            }
-            else {
-              // Get the file contents after the append operation
-            //   console.log("\nLogged:" + newObj.toString());
-           }
-        });
+        fs.appendFileSync(absPath, JSON.stringify(newObj));
     },
 
     logStr: function(string) {
-        fs.appendFile(absPath, string, (err) => {
-            if (err) {
-              console.log(err);
-            }
-        });
+        fs.appendFile(absPath, string);
     },
 
     endLog: function() {
-        fs.appendFile(absPath, "\n]", (err) => {
-            if (err) {
-              console.log(err);
-            }
-            else {
-              // Get the file contents after the append operation
-            //   console.log("\nLogged:" + newObj.toString());
-           }
-        });
+        fs.appendFileSync(absPath, "\n]");
     }
 
 
