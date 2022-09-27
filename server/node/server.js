@@ -14,7 +14,7 @@ var psi_hat = 0;
 
 //on websocket connect
 wss.on('connection', (ws) => {
-    console.log('iPhone connected\n');
+    console.log('Device connected\n');
 
     ws.on('message', (messageAsString) => {
       time = Date.now();
