@@ -1,4 +1,18 @@
-module.exports = {
+const {pi, matrix, abs, sin, cos, sqrt, pow, atan, asin, multiply, divide} = require('mathjs');
+
+function mapYaw(psi_hat) {
+    
+
+    psi_hat += 1600
+
+    psi_hat *= 360/3200
+    
+    yaw = psi_hat-180
+
+    return yaw
+}
+
+module.exports = {   
     processAccellerationToVelocity: function(ax, ay, az, vx, vy, vz, dataFrequency) {
 
         velocity_x = vx + ax*dataFrequency;
@@ -28,7 +42,7 @@ module.exports = {
         return _ret;
     },
 
-    estimateAttitude: function(){
+    estimateAttitude: function(a_x, a_y, a_z, m_x, m_y, m_z, g_x, g_y, g_z, psi_old, dt){
         let Math = require('mathjs')
 
         phi = Math.pi/3
@@ -39,40 +53,74 @@ module.exports = {
 
         C = [-Math.sin(theta), Math.sin(phi) * Math.cos(theta), Math.cos(phi)*Math.cos(theta)] // Cn_b * e_3
 
-        a_b = Math.multiply(-g, C)
-        a_x = a_b[0]
-        a_y = a_b[1]
-        a_z = a_b[2]
-
-        console.log(a_x)
-
-        phi_hat = Math.asin(a_x/g)
-        theta_hat = Math.atan(a_y/a_z)
-
-        D = (2 + 31/60 + 48/3600 )* (Math.pi/180)
-        I = (59 + 33/60 + 23/3600)* (Math.pi/180)
-        m = Math.sqrt((23660*Math.pow(10,-9))^2+(821*Math.pow(10,-9))^2+(40209*Math.pow(10,-9))^2)
-
-        m_n = Math.multiply([Math.cos(-I)*Math.cos(D), Math.cos(-I)*Math.sin(D),Math.sin(Math.abs(I))], m)
+        // a_b = multiply(-g, C)
+        // a_x = a_b[0]
+        // a_y = a_b[1]
+        // a_z = a_b[2]
 
 
-        Cn_b = Math.matrix([[Math.cos(theta)*Math.cos(psi),Math.cos(theta)*Math.sin(psi),-Math.sin(theta)],
-            [Math.sin(phi)*Math.sin(theta)*Math.cos(psi)-Math.sin(psi)*Math.cos(phi), Math.sin(phi)*Math.sin(theta)*Math.sin(psi)+Math.cos(phi)*Math.cos(psi),  Math.sin(phi)*Math.cos(theta)],
-            [Math.cos(phi)*Math.sin(theta)*Math.cos(psi)+Math.sin(phi)*Math.sin(psi), Math.cos(phi)*Math.sin(theta)*Math.sin(psi)-Math.sin(phi)*Math.cos(psi), Math.cos(phi)*Math.cos(theta)]])
+        theta_hat = asin(-a_y*g/g)
+
+        phi_hat = atan(-a_x/a_z)
+
+        D = (2 + 31/60 + 48/3600 )* (pi/180)
+
+        m_y = -m_y
+        m_z = -m_z
         
-        m_b = Math.multiply(Cn_b, m_n)
 
-        m_x = m_b._data[0]
-        m_y = m_b._data[1]
-        m_z = m_b._data[2]
+        nom = cos(phi_hat)*m_y-sin(phi_hat)*m_z
+        denom = cos(theta_hat)*m_x+sin(phi_hat)*sin(theta_hat)*m_y+cos(phi_hat)*sin(theta_hat)*m_z
 
-        nom = Math.cos(phi_hat)*m_y-Math.sin(phi_hat)*m_z
-        denom = Math.cos(theta_hat)*m_x+Math.sin(phi_hat)*Math.sin(theta_hat)*m_y+Math.cos(phi_hat)*Math.sin(theta_hat)*m_z
+        
 
+        // psi_hat = D-atan(divide(nom,denom))
 
-        psi_hat = D-Math.atan(Math.divide(nom,denom))
-        console.log(theta_hat)
-        console.log(phi_hat)
-        console.log(psi_hat)
+        psi_hat = psi_old + g_z * dt
+        console.log(g_z)
+        if (psi_hat < -1599)
+        {
+            psi_hat = -1599
+        }
+        if (psi_hat > 1600)
+        {
+            psi_hat = 1600
+        }
+        
+
+        roll = phi_hat*180/pi
+        pitch = theta_hat*180/pi
+        // yaw = psi_hat*180/pi
+        yaw = mapYaw(psi_hat)
+
+        // if (abs(yaw) > 180){
+        //     psi_hat = 0
+        //     yaw = 0
+        // }
+
+        // roll = Math.round(roll * 100) / 100
+        // pitch = Math.round(pitch * 100) / 100
+        // yaw =Math.round(yaw * 100) / 100
+
+        roll = Math.round(roll)
+        pitch = Math.round(pitch)
+        yaw = Math.round(yaw)
+        yaw = psi_hat + 1600
+        yaw *= 800/3200
+        yaw = Math.floor(yaw)
+
+        var _ret = {
+            roll: roll,
+            pitch: pitch,
+            yaw: yaw,
+            psi: psi_hat
+        }
+        
+        return _ret
+    },
+    
+
+    calculateDisplacement: function(roll, pitch, yaw){
+
     }
 };

@@ -50,9 +50,18 @@ var dist_y = 0;
 //called every 100ms
 function moveTheMouse() {
   var str = Math.floor(dist_x) + ' ' + Math.floor(dist_y);
-  pyshell.send(str);
-  dist_x = 0;
-  dist_y = 0;
+  console.log(dist_x, dist_y)
+
+  var str = dist_x + ' ' + dist_y
+
+  if (dist_x < 0 || dist_y < 0){
+    console.log("error")
+  }
+  else {
+    pyshell.send(str);
+  }
+  // dist_x = 0;
+  // dist_y = 0;
 }
 
 var offsets = meanOffset.getMeanOffsets();
@@ -67,32 +76,36 @@ wss.on('connection', (ws) => {
     //only displace mouse every 100ms
     setInterval(moveTheMouse, 100);
 
+    var i = 0
+    var psi_old = 0
     ws.on('message', (messageAsString) => {
-      time = Date.now();
-      dt = time - prevTime;
-      prevTime = time;
+      i += 1
+      if (i > 0) {
+        // i=0
+        
+        time = Date.now();
+        dt = time - prevTime;
+        prevTime = time;
+  
+        const message = JSON.parse(messageAsString);
+        g_z = message.g_z
+        if (Math.abs(g_z) < 0.01 )
+        {
+          g_z = 0
+        }
+        // console.log(message.g_z)
+        // console.log('a_x: ', message.x, 'a_y:', message.y,  'a_z: ', message.z)
+        // console.log('a_y: ', message.y, message.m_y)
+        // console.log('m_x: ', message.m_x,'m_y: ', message.m_y,'m_z: ', message.m_z)
+        
+        var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, g_z, psi_old, dt)
+        psi_old = v.psi
+        console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
+        dist_x = v.yaw
 
-      const message = JSON.parse(messageAsString);
+      }
 
-      // debug message
-      if(message != undefined) {
-        var v = data.processAccellerationToVelocity(message.x - offsets.mean_x, -message.y + offsets.mean_y, message.z - offsets.mean_z, 0, 0, 0, dt/1000);
-
-        //filter out some noise
-        // if(Math.abs(message.x) <= 0.01 && Math.abs(message.y) <= 0.02) {
-        //   // console.log("Reset vel");
-        //   v.vx = 0;
-        //   v.vy = 0;
-        //   v.vz = 0;
-        // }
-
-        //computed distance from velocity
-        var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, dt/1000);
-
-        //amplify displacement
-        dist_x = d.x*10000;
-        dist_y = d.y*10000;
-      }      
+      // }      
     });  
 });
 
