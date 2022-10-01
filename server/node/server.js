@@ -1,5 +1,4 @@
 var data = require('./process_data');
-const {getCursorPosition, setCursorPosition, sendCursorEvent, cursorEvents} = require("node-cursor");
 
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 7071 });
@@ -25,7 +24,7 @@ wss.on('connection', (ws) => {
       if(message != undefined) {
         var att = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, message.g_z, psi_hat, dt/60);
         psi_hat = att.psi_hat;
-      }     
+      }
       
       setCursorPosition(getCursorPosition() + {
         x: dist_x,

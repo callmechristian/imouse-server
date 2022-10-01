@@ -1,4 +1,4 @@
-const {pi, abs, sin, cos, round, atan, asin} = require('mathjs');
+const {pi, abs, sin, cos, round, atan, asin, floor} = require('mathjs');
 
 function mapYaw(psi_hat) {
     psi_hat += 1600;
@@ -85,16 +85,15 @@ module.exports = {
     },
 
     calculateDisplacement: function(roll, pitch, yaw){
-        var displacement_x = pitch;
-        var displacement_y = yaw;
-        var displacement_z = roll; //not necessary
+        var displacement_x = yaw;
+        var displacement_y = -pitch;
 
         // filter parameters
         var screenx = 1980;
         var screeny = 1080;
 
-        var max_input_x = 35;
-        var max_input_y = 35;
+        var max_input_x = 60;
+        var max_input_y = 40;
 
         var threshold_x = 10;
         var threshold_y = 10;
@@ -103,13 +102,13 @@ module.exports = {
         var linear_translatino_x = screenx/2; //center x of the screen in pixels
         var linear_translation_y = screeny/2; //center y of the screen in pixels
         
-        if(abs(pitch) <= threshold_y) {
-            displacement_y = 0;
-        }
+        // if(abs(pitch) <= threshold_y) {
+        //     displacement_y = 0;
+        // }
 
-        if(abs(yaw) <= threshold_x) {
-            displacement_x = 0;
-        }
+        // if(abs(yaw) <= threshold_x) {
+        //     displace ment_x = 0;
+        // }
 
         displacement_x = linear_slope_x*displacement_x + linear_translatino_x;
         displacement_y = linear_slope_y*displacement_y + linear_translation_y;

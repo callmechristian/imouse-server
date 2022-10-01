@@ -38,7 +38,7 @@ function compute() {
             }
         
             //move the mouse
-            relativeMousePosition(0, att.pitch);
+            setRelativeMousePosition(0, att.pitch);
         } catch(e) {
             console.log(e);
         };
