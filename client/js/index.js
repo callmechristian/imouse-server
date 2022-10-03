@@ -7,9 +7,17 @@
     var roll = 0; //doesnt matter
     var yaw = 0; //-60 to 60
 
-    const display_roll = document.getElementById('roll');
-    const display_pitch = document.getElementById('pitch');
-    const display_yaw = document.getElementById('yaw');
+    var display_roll;
+    var display_pitch;
+    var display_yaw;
+
+    window.onload = function(evt) {
+        display_roll = document.getElementById("roll");
+        display_pitch = document.getElementById("pitch");
+        display_yaw = document.getElementById("yaw");
+
+        updateValues();
+    }
 
     var attitude = {
         "pitch": pitch,
@@ -38,9 +46,9 @@
     }
 
     function updateValues() {
-        display_roll.innerText = "Roll: " + roll;
-        display_pitch.innerText = "Pitch: " + pitch;
-        display_yaw.innerText = "Yaw: " + yaw;
+        display_roll.innerText = "Roll: " + attitude.roll;
+        display_pitch.innerText = "Pitch: " + attitude.pitch;
+        display_yaw.innerText = "Yaw: " + attitude.yaw;
     }
 
     window.onkeydown = function(evt) {
