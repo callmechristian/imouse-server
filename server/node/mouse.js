@@ -13,5 +13,32 @@ module.exports = {
         };
 
         setCursorPosition(nextPos);
+    },
+
+    sendMouseLeftClick: function() {
+        var currentPosition = getCursorPosition();
+        sendCursorEvent({
+            event: cursorEvents.LEFT_DOWN,
+            data: 0,
+            x: currentPosition.x,
+            y: currentPosition.y
+          });
+    },
+
+    sendMouseRightClick: function() {
+        var currentPosition = getCursorPosition();
+        sendCursorEvent({
+            event: cursorEvents.RIGHT_DOWN,
+            data: 0,
+            x: currentPosition.x,
+            y: currentPosition.y
+          });
+    },
+
+    setMousePosition: function(x, y) {
+        setCursorPosition({
+            x: x,
+            y: y
+        })
     }
 }
