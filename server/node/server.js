@@ -1,7 +1,7 @@
 
 var data = require('./process_data');
 const { getCursorPosition, setCursorPosition, sendCursorEvent, cursorEvents } = require("node-cursor");
-const { sendMouseLeftClick, sendMouseRightClick, setMousePosition } = require('./mouse');
+const { sendMouseLeftClick, sendMouseRightClick, setMousePosition, scrollEvent } = require('./mouse');
 
 
 // websocket
@@ -10,6 +10,9 @@ const { pi, asin } = require('mathjs');
 const { calculateDisplacement } = require('./process_data');
 const e = require('express');
 const wss = new WebSocket.Server({ port: 8000 });
+
+// keyboard events
+var robot = require('robotjs');
 
 // options
 const opt_debug = true;
@@ -24,8 +27,11 @@ var dist_y = 0;
 // filter
 var KalmanFilter = require('kalmanjs')
 
-var kf_y = new KalmanFilter();
+var kf_y = new KalmanFilter({R: 0.01, Q: 3});
 var kf_x = new KalmanFilter();
+var kf_r = new KalmanFilter();
+var kf_p = new KalmanFilter();
+var kf_yaw = new KalmanFilter({R: 0.01, Q: 3});
 
 // on websocket connect
 wss.on('connection', (ws) => {
@@ -81,9 +87,18 @@ wss.on('connection', (ws) => {
       //message.roll, message.pitch, message.yaw
       if(message.roll != undefined && message.yaw != undefined && message.pitch != undefined) {
         // var disp = data.calculateDisplacement(attitude.roll, attitude.pitch, attitude.yaw, last_x, last_y);
-        var disp = data.calculateDisplacement(message.roll, message.pitch, message.yaw, last_x, last_y);
+        var kroll = kf_r.filter(message.roll);
+        var kpitch = kf_p.filter(message.pitch);
+        var kyaw = kf_yaw.filter(message.yaw);
+
+        console.log(kyaw);
+
+        var disp = data.calculateDisplacement(message.roll, kpitch, kyaw, last_x, last_y);
+
         var displacement_x = kf_x.filter(disp.d_x);
         var displacement_y = kf_y.filter(disp.d_y);
+
+        // console.log(message.yaw);
         // console.log(disp)
         // var disp = data.calculateDisplacement(att.roll, att.pitch, att.yaw);
         if( disp.d_x != undefined && disp.d_x != undefined) {
@@ -105,23 +120,23 @@ wss.on('connection', (ws) => {
         if(message.rightMouseClick) {
           sendMouseRightClick();
         }
-        if(message.alt_tab) {
-          // send alt tab
+        if(message.switchTab) {
+          robot.keyTap("tab", "control");
         }
-        if(message.ctrl_l) {
-          //send ctrl l
+        if(message.missionCtrl) {
+          robot.keyTap("tab", "command");
         }
-        if(message.scroll) {
-          var scroll_x = message.scroll_x;
-          var scroll_y = message.scroll_y;
-
-          //get active scrollable window info
+        if(message.switchToLaser) {
+          robot.keyTap("l", "control");
         }
-        if(message.volume_up) {
-          // windows increase volume
+        if(message.scroll != undefined) {
+          scrollEvent(message.scroll);
         }
-        if(message.volume_down) {
-          // windows decrease volume
+        if(message.leftArrow) {
+          robot.keyTap("left");
+        }
+        if(message.rightArrow) {
+          robot.keyTap("right");
         }
       }
     });  

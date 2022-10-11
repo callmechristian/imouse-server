@@ -22,7 +22,13 @@ module.exports = {
             data: 0,
             x: currentPosition.x,
             y: currentPosition.y
-          });
+        });
+        sendCursorEvent({
+            event: cursorEvents.LEFT_UP,
+            data: 0,
+            x: currentPosition.x,
+            y: currentPosition.y
+        });
     },
 
     sendMouseRightClick: function() {
@@ -32,7 +38,23 @@ module.exports = {
             data: 0,
             x: currentPosition.x,
             y: currentPosition.y
-          });
+        });
+        sendCursorEvent({
+            event: cursorEvents.RIGHT_UP,
+            data: 0,
+            x: currentPosition.x,
+            y: currentPosition.y
+        });
+    },
+
+    scrollEvent: function(disp_y) {
+        var currentPosition = getCursorPosition();
+        sendCursorEvent({
+            event: cursorEvents.WHEEL,
+            data: disp_y, //amount of wheel movement
+            x: currentPosition.x,
+            y: currentPosition.y
+        });
     },
 
     setMousePosition: function(x, y) {

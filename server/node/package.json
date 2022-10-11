@@ -4,7 +4,10 @@
     "kalmanjs": "^1.1.0",
     "mathjs": "^11.2.1",
     "node-cursor": "^1.1.2",
+    "node-global-key-listener": "^0.1.1",
+    "node-key-sender": "^1.0.11",
     "python-shell": "^3.0.1",
+    "robotjs": "^0.6.0",
     "websocket": "^1.0.34",
     "ws": "^8.8.1"
   }

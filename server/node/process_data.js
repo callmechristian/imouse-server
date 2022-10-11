@@ -230,8 +230,8 @@ module.exports = {
         var screeny = 1080;
         
         // max attitude angles
-        var max_input_x = 1;
-        var max_input_y = 1;
+        var max_input_x = 60;
+        var max_input_y = 40;
 
         // high pass filter to remove noise if needed
         var threshold_x = 2;
