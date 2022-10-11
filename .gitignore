@@ -1,2 +1,5 @@
 # ignore node modules and mention them in the readme.md
 /server/node/node_modules
+/server/node/server-linux
+/server/node/server-macos
+*.exe
