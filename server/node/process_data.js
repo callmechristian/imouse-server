@@ -1,13 +1,5 @@
 const {pi, abs, sin, cos, round, atan, asin, floor, sqrt} = require('mathjs');
 
-function mapYaw(psi_hat) {
-    psi_hat += 1600;
-    psi_hat *= 360/3200;
-    yaw = psi_hat - 180;
-
-    return yaw;
-}
-
 module.exports = {   
     processAccellerationToVelocity: function(ax, ay, az, vx, vy, vz, dataFrequency) {
         /*
@@ -66,23 +58,21 @@ module.exports = {
         return _ret;
     },
 
-    estimateAttitude: function(a_x, a_y, a_z, m_x, m_y, m_z, g_x, g_y, g_z, psi_old, dt){
+    estimateAttitude: function(a_x, a_y, a_z, r, p, q, m_x, m_y, m_z, g_x, g_y, g_z, psi_old, dt){
         /*
         Estimate attitude from accelerometer data for pitch and roll, gyrometer data for yaw. No magnetometer.
         */
 
-        // let initial values be non-zero
-        phi = pi/3;
-        theta = pi/3;
-        psi = pi/4;
         g = 9.81;
         
-        // rotation matrix
-        C = [-sin(theta), sin(phi) * cos(theta), cos(phi)*cos(theta)] // Cn_b * e_3
+        // account for gravity vector
+        a_x = a_x + g_x;
+        a_y = a_y + g_y;
+        a_z = a_z + g_z;
 
-        // estimated roll
-        theta_hat = asin(-a_y*g/g);
         // estimated pitch
+        theta_hat = asin(-a_y);
+        // estimated roll
         phi_hat = atan(-a_x/a_z);
 
         // earth magnetic vector
@@ -93,11 +83,17 @@ module.exports = {
         m_z = -m_z;
         
         // build formula for yaw (accelerometer + magnetometer)
-        nom = cos(phi_hat)*m_y-sin(phi_hat)*m_z;
-        denom = cos(theta_hat)*m_x+sin(phi_hat)*sin(theta_hat)*m_y+cos(phi_hat)*sin(theta_hat)*m_z;
+        nom = cos(phi_hat)*m_x-sin(phi_hat)*m_z;
+        denom = cos(theta_hat)*m_y+sin(phi_hat)*sin(theta_hat)*m_x+cos(phi_hat)*sin(theta_hat)*m_z;
 
         // estimated yaw
-        psi_hat = psi_old + g_z * dt;
+        psi_hat = psi_old + q * dt;
+        if(psi_hat>60) {
+            psi_hat = 60;
+        }
+        if(psi_hat < -60) {
+            psi_hat = -60;
+        }
 
         // convert to degrees from radians
         roll = phi_hat*180/pi;
@@ -119,32 +115,43 @@ module.exports = {
         return _ret
     },
 
-    estimateAttitudeComplementary: function(a_x, a_y, a_z, m_x, m_y, m_z, g_x, g_y, g_z, theta_hat_g_old, phi_hat_g_old ,psi_hat_g_old, dt){
+    estimateAttitudeComplementary: function(a_y, a_x, a_z, m_y, m_x, m_z, g_x, g_y, g_z, r, p, q, theta_hat_g_old, phi_hat_g_old, psi_hat_g_old, dt){
         /*
         Estimate attitude from accelerometer + magnetometer and gyrometer.
         */
 
+        //ios shenanigans
+        a_x = a_x - g_x;
+        a_y = a_y - g_y;
+        a_z = a_z - g_z;
+
+        // invert magnetometer input according to iphone axis
+        m_y = -m_y;
+        m_z = -m_z;
+
+        // gravity
+        var g = 9.81;
+
         // earth magnetic vector
         var D = (2 + 31/60 + 48/3600 ) * (pi/180);
 
-        // invert magnetometer input according to iphone axis
-        var m_y = -m_y;
-        var m_z = -m_z;
-
         /* pitch roll and yaw estimations */
         // estimated pitch from accelerometer
-        var theta_hat_am = asin(-a_y*g/g);
+        var theta_hat_am = asin(-a_y)*180/pi;
 
         // estimated pitch from gyrometer (in radians)
-        var theta_hat_g = theta_hat_g_old + g_x * dt;
-        var theta_hat_g = theta_hat_g*180/25; //some calibration needed
+        var theta_hat_g = theta_hat_g_old + p * dt;
+        var theta_hat_g = theta_hat_g*180/pi; //some calibration needed
 
         // estimated roll from accelerometer
-        var phi_hat_am = atan(-a_x/a_z);
+        var phi_hat_am = atan(-a_x/a_z)*180/pi;
 
-        // estimated roll from accelerometer (in radians)
-        var phi_hat_g = phi_hat_g_old + g_y * dt;
-        var phi_hat_g = phi_hat_g*180/25; //some calibration needed
+        // estimated roll from gyrometer (in radians)
+        var phi_hat_g = phi_hat_g_old + r * dt;
+        // var phi_hat_g = phi_hat_g*180/pi; //some calibration needed
+
+        // console.log(phi_hat_g);
+
 
         // build formula for yaw (accelerometer + magnetometer)
         var nom = cos(phi_hat_am)*m_y-sin(phi_hat_am)*m_z;
@@ -152,16 +159,22 @@ module.exports = {
         // estimated yaw with accelerometer + magnetometer
         var psi_hat_am = D - atan(nom/denom);
 
-        // estimated yaw with gyro (in radians)
-        var psi_hat_g = psi_old + g_z * dt;
-        var psi_hat_g = psi_hat_g*180/25; //some calibration needed
+        // console.log(psi_hat_am);
+
+
+        // estimated yaw with gyrometer (in radians)
+        var psi_hat_g = psi_hat_g_old + q * dt;
+        // var psi_hat_g = psi_hat_g*180/pi; //some calibration needed
+
+        // console.log(psi_hat_g);
+
 
         // filters
-        var damping_factor = 1.1; // 1 = no damping
+        var damping_factor = 5; // 1 = no damping
         //calibration needed!
-        var ki_theta = 1;
-        var ki_phi = 1;
-        var ki_psi = 1;
+        var ki_theta = 0.95;
+        var ki_phi = 0.95;
+        var ki_psi = 0.95;
 
         var k_theta = 2*damping_factor*sqrt(ki_theta);
         var k_phi = 2*damping_factor*sqrt(ki_phi);
@@ -173,13 +186,15 @@ module.exports = {
         //in the end this might not even be necessary
 
         // low pass filter for accel, high pass filter for gyro
-        var theta_hat_amg = (k_theta/(dataFrequency + k_theta))*theta_hat_am + (dataFrequency/(dataFrequency + k_theta))*theta_hat_g;
-        var phi_hat_amg = (k_phi/(dataFrequency + k_phi))*phi_hat_am + (dataFrequency/(dataFrequency + k_phi))*phi_hat_g;
-        var psi_hat_amg = (k_psi/(dataFrequency + k_psi))*psi_hat_am + (dataFrequency/(dataFrequency + k_psi))*psi_hat_g;
+        var theta_hat_amg = (k_theta/(dt + k_theta))*theta_hat_am + (dt/(dt + k_theta))*theta_hat_g;
+        var phi_hat_amg = (k_phi/(dt + k_phi))*phi_hat_am + (dt/(dt + k_phi))*phi_hat_g;
+        var psi_hat_amg = (k_psi/(dt + k_psi))*psi_hat_am + (dt/(dt + k_psi))*psi_hat_g;
+
+        // console.log("theta:" + theta_hat_amg + " phi:" + phi_hat_amg + " psi:" + psi_hat_amg);
 
         // convert to degrees from radians
-        roll = phi_hat_amg*180/pi;
-        pitch = theta_hat_amg*180/pi;
+        roll = phi_hat_am;
+        pitch = theta_hat_am;
         yaw = psi_hat_amg;
 
         // round data to nearest to pass for the mouse movement script
@@ -191,7 +206,9 @@ module.exports = {
             roll: roll,
             pitch: pitch,
             yaw: yaw,
-            psi: psi_hat
+            psi_hat_g_old: psi_hat_g,
+            theta_hat_g_old: theta_hat_g,
+            phi_hat_g_old: phi_hat_g
         }
         
         return _ret
@@ -213,12 +230,12 @@ module.exports = {
         var screeny = 1080;
         
         // max attitude angles
-        var max_input_x = 60;
-        var max_input_y = 40;
+        var max_input_x = 1;
+        var max_input_y = 1;
 
         // high pass filter to remove noise if needed
-        var threshold_x = 10;
-        var threshold_y = 10;
+        var threshold_x = 2;
+        var threshold_y = 2;
 
         // equations for the coversion
         var linear_slope_x = screenx/(2*max_input_x); //center x divided by max mapped value

@@ -36,6 +36,7 @@ module.exports = {
     },
 
     setMousePosition: function(x, y) {
+        // console.log("Set cursor y to:" + y);
         setCursorPosition({
             x: x,
             y: y
