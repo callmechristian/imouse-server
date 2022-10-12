@@ -27,6 +27,7 @@ var prevTime = 0;
 var dist_x = 0;
 var dist_y = 0;
 
+// kalmann filter classes
 var kf_y = new KalmanFilter({R: 0.01, Q: 3});
 var kf_x = new KalmanFilter();
 var kf_r = new KalmanFilter();
