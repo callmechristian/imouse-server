@@ -141,14 +141,13 @@ module.exports = {
 
         // estimated pitch from gyrometer (in radians)
         var theta_hat_g = theta_hat_g_old + p * dt;
-        var theta_hat_g = theta_hat_g*180/pi; //some calibration needed
+        var theta_hat_g = theta_hat_g*180/pi;
 
         // estimated roll from accelerometer
         var phi_hat_am = atan(-a_x/a_z)*180/pi;
 
         // estimated roll from gyrometer (in radians)
         var phi_hat_g = phi_hat_g_old + r * dt;
-        // var phi_hat_g = phi_hat_g*180/pi; //some calibration needed
 
         // console.log(phi_hat_g);
 
@@ -159,15 +158,8 @@ module.exports = {
         // estimated yaw with accelerometer + magnetometer
         var psi_hat_am = D - atan(nom/denom);
 
-        // console.log(psi_hat_am);
-
-
         // estimated yaw with gyrometer (in radians)
         var psi_hat_g = psi_hat_g_old + q * dt;
-        // var psi_hat_g = psi_hat_g*180/pi; //some calibration needed
-
-        // console.log(psi_hat_g);
-
 
         // filters
         var damping_factor = 5; // 1 = no damping
@@ -193,9 +185,9 @@ module.exports = {
         // console.log("theta:" + theta_hat_amg + " phi:" + phi_hat_amg + " psi:" + psi_hat_amg);
 
         // convert to degrees from radians
-        roll = phi_hat_am;
-        pitch = theta_hat_am;
-        yaw = psi_hat_amg;
+        roll = phi_hat_am*180/pi;
+        pitch = theta_hat_am*180/pi;
+        yaw = psi_hat_amg*180/pi;
 
         // round data to nearest to pass for the mouse movement script
         roll = round(roll);
@@ -243,6 +235,7 @@ module.exports = {
         var linear_translatino_x = screenx/2; //center x of the screen in pixels
         var linear_translation_y = screeny/2; //center y of the screen in pixels
         
+        // threshold mapping
         // if(abs(pitch) <= threshold_y) {
         //     displacement_y = 0;
         // }

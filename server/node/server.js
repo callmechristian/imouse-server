@@ -14,8 +14,11 @@ const wss = new WebSocket.Server({ port: 8000 });
 // keyboard events
 var robot = require('robotjs');
 
+// filter
+var KalmanFilter = require('kalmanjs')
+
 // options
-const opt_debug = true;
+const opt_debug = false;
 
 // global vars
 var dt;
@@ -23,9 +26,6 @@ var time;
 var prevTime = 0;
 var dist_x = 0;
 var dist_y = 0;
-
-// filter
-var KalmanFilter = require('kalmanjs')
 
 var kf_y = new KalmanFilter({R: 0.01, Q: 3});
 var kf_x = new KalmanFilter();
@@ -38,7 +38,6 @@ wss.on('connection', (ws) => {
     console.log('Device connected.\n');
 
     // instantiate some important vars
-    var psi_hat = 0;
     var last_x = 0;
     var last_y = 0;
     var psi_hat_g_old = 0;
@@ -47,7 +46,7 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (messageAsString) => {
 
-      // to calculate dataFrequency
+      // calculate dataFrequency and packet delta
       time = Date.now();
       dt = time - prevTime;
       prevTime = time;
@@ -61,24 +60,11 @@ wss.on('connection', (ws) => {
       if(message != undefined) {
         attitude = data.estimateAttitudeComplementary(message.a_x, message.a_y, message.a_z, message.m_x, message.m_y, message.m_z, message.g_x, message.g_y, message.g_z, message.r, message.p, message.q, theta_hat_g_old, phi_hat_g_old, psi_hat_g_old, dt/60);
         // att = data.estimateAttitude(message.a_x,message.a_y,message.a_z, message.r, message.p, message.q, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, message.g_z, psi_hat, dt/60);
-        // console.log(-message.a_y/message.a_x);
-        // console.log(message);
-        // console.log(att);
-        // psi_hat = att.psi;
 
-        // var vel = data.processAccellerationToVelocity(message.a_x, message.a_y, message.a_z, vx, vy, vz, dt/60);
-        // vx = vel.vx;
-        // vy = vel.vy;
-        // vz = vel.vz;
-
-        // var dist = data.processVelocityToDistance(vx, vy, vz, dx, dy, dz, dt/60);
-        
-        // console.log(asin(-message.a_y-message.g_y)*180/pi);
-        // psi_hat = att.psi_hat;
+        // for recursion
         psi_hat_g_old = attitude.psi_hat_g_old;
         theta_hat_g_old = attitude.theta_hat_g_old;
         phi_hat_g_old = attitude.phi_hat_g_old;
-
       } else {
         console.error("Message is undefined!\n");
       }
@@ -86,21 +72,21 @@ wss.on('connection', (ws) => {
       // if message contains attitude data
       //message.roll, message.pitch, message.yaw
       if(message.roll != undefined && message.yaw != undefined && message.pitch != undefined) {
-        // var disp = data.calculateDisplacement(attitude.roll, attitude.pitch, attitude.yaw, last_x, last_y);
+        // instantiate kalmann filters for the roll pitch and yaw
         var kroll = kf_r.filter(message.roll);
         var kpitch = kf_p.filter(message.pitch);
         var kyaw = kf_yaw.filter(message.yaw);
 
-        console.log(kyaw);
-
+        // mapy the roll pitch and yaw to screen size
         var disp = data.calculateDisplacement(message.roll, kpitch, kyaw, last_x, last_y);
 
+        // instantiate kalmann filters for displacement
         var displacement_x = kf_x.filter(disp.d_x);
         var displacement_y = kf_y.filter(disp.d_y);
 
-        // console.log(message.yaw);
-        // console.log(disp)
-        // var disp = data.calculateDisplacement(att.roll, att.pitch, att.yaw);
+        // generally the kalmann filters smoothen out the noise
+
+        // for thresholding
         if( disp.d_x != undefined && disp.d_x != undefined) {
           last_x = disp.d_x;
           last_y = disp.d_x;
@@ -110,10 +96,9 @@ wss.on('connection', (ws) => {
         }
         
         setMousePosition(displacement_x, displacement_y);
-        // if(opt_debug) console.log(message);
+        if(opt_debug) console.log(message);
       } else {
         // else if message contains event data
-        // console.log(message)
         if(message.leftMouseClick) {
           sendMouseLeftClick();
         } 
