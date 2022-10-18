@@ -98,7 +98,7 @@ module.exports = {
         // convert to degrees from radians
         roll = phi_hat*180/pi;
         pitch = theta_hat*180/pi;
-        yaw = psi_hat;
+        yaw = psi_hat*180/pi;
 
         // round data to pass for the mouse movement script
         roll = round(roll);
@@ -222,7 +222,7 @@ module.exports = {
         var screeny = 1080;
         
         // max attitude angles
-        var max_input_x = 60;
+        var max_input_x = 40;
         var max_input_y = 40;
 
         // high pass filter to remove noise if needed
