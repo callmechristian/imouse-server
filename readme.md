@@ -1,6 +1,6 @@
 # Mouse server and client
 
-This branch is only intended for use on windows, for MacOS and Linux check the Python branch.
+This branch is only intended for use on windows, for MacOS and Linux check the Python repo at: https://github.com/phiahr/accel_mouse
 
 ## Requirements
 Websocket communication
