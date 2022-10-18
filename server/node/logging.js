@@ -1,39 +1,41 @@
-const varToString = varObj => Object.keys(varObj)[0];
 var fs = require("fs");
+var absPath = "";
+exports.path = absPath;
 
 module.exports={
     initLog: function(name) {
-        fs.writeFile("../../logs/log_" + nr + "_" + name + ".json","[\n");
-        var nr = parseInt(fs.readFile("../../logs/DATA"));
-        fs.writeFile("../../logs/DATA", nr);
+        var nr = 0;
+
+        const data = fs.readFileSync("../../logs/DATA", 'utf-8');
+        nr = parseInt(data);
+        console.log("Nr read is:" + nr);
+
+        var _str = "../../logs/log_" + nr + "_" + name + ".json";
+
+        fs.writeFileSync(_str,"[\n");
+        absPath = "../../logs/log_" + nr + "_" + name + ".json";
+        console.log("Path is:");
+        console.log(absPath);
+
+        fs.writeFileSync("../../logs/DATA", (++nr).toString());
+        console.log("writing to data:" + nr);
+
     },
 
-    logToJSON: function(obj, path) {
-        var JSON = {};
-        for(a in obj) {
-            JSON[varToString(obj[a])] = obj[a];
+    logObjToJSON: function(obj) {
+        var newObj = {};
+        for(i = 0; i < Object.keys(obj).length; i++) {
+            newObj[Object.keys(obj)[i]] = obj[Object.keys(obj)[i]];
         }
-        fs.appendFile(path, JSON.toString(), (err) => {
-            if (err) {
-              console.log(err);
-            }
-            else {
-              // Get the file contents after the append operation
-              console.log("\nLogged:" + JSON.toString());
-           }
-        });
+        fs.appendFileSync(absPath, JSON.stringify(newObj));
+    },
+
+    logStr: function(string) {
+        fs.appendFile(absPath, string);
     },
 
     endLog: function() {
-        fs.appendFile(path, JSON.toString(), (err) => {
-            if (err) {
-              console.log(err);
-            }
-            else {
-              // Get the file contents after the append operation
-              console.log("\nLogged:" + JSON.toString());
-           }
-        });
+        fs.appendFileSync(absPath, "\n]");
     }
 
 

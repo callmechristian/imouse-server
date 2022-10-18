@@ -1,106 +1,137 @@
 var data = require('./process_data');
-var log1 = require('../../logs/usagelog.json');
-var meanOffset = require('./determine_offset');
-
-//instantiate python shell with stdin to run in parallel
-let {PythonShell} = require('python-shell')
-let pyshell = new PythonShell('../python/movemouse.py');
-
-const fs = require('fs');
-
-const {exit} = require('process');
-
-data.estimateAttitude(0,1,-1,20*Math.pow(10,-9),20*Math.pow(10,-9),20*Math.pow(10,-9))
-// exit()
-
-// sends a message to the Python script via stdin
-for (const a in log1){
-  var v = data.processAccellerationToVelocity(log1[a].x, log1[a].y, log1[a].z, 0, 0, 0, 60);
-  var d = data.estimateNewMouseDisplacement(0, 0, 0, v.vx, v.vy, v.vz, 1/60);
-
-  // console.log(d);
-  var str = Math.floor(d.x) + ' ' + Math.floor(d.y);
-  
-  // pyshell.send(str);
-}
+const { sendMouseLeftClick, sendMouseRightClick, setMousePosition, scrollEvent } = require('./mouse');
 
 
-//for debug purposes
-/*
-pyshell.on('message', function (message) {
-  // received a message sent from the Python script (a simple "print" statement)
-  console.log("Pymsg: " + message);
-});
-*/
-
-var options = {
-  scriptPath: '../python/'
-};
-
+// websocket
 const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 8000 });
 
-const wss = new WebSocket.Server({ port: 7071 });
-const clients = new Map();
+// keyboard events
+var robot = require('robotjs');
 
-//timestamps
-var prevTime = Date.now();
+// filter
+var KalmanFilter = require('kalmanjs')
+
+// options
+const opt_debug = true;
+
+// global vars
+var dt;
+var time;
+var prevTime = 0;
 var dist_x = 0;
 var dist_y = 0;
 
-//called every 100ms
-function moveTheMouse() {
-  var str = Math.floor(dist_x) + ' ' + Math.floor(dist_y);
-  pyshell.send(str);
-  dist_x = 0;
-  dist_y = 0;
-}
+// kalmann filter classes; this served as a good hotfix for noisy input
+var kf_y = new KalmanFilter({R: 0.01, Q: 3});
+var kf_x = new KalmanFilter();
+var kf_r = new KalmanFilter();
+var kf_p = new KalmanFilter();
+var kf_yaw = new KalmanFilter({R: 0.01, Q: 3});
 
-var offsets = meanOffset.getMeanOffsets();
-
+// on websocket connect
 wss.on('connection', (ws) => {
-    const id = uuidv4();
-    const color = Math.floor(Math.random() * 360);
-    const metadata = { id, color };
+    console.log('Device connected.\n');
 
-    clients.set(ws, metadata);
+    // instantiate some important vars
+    var last_x = 0;
+    var last_y = 0;
+    var psi_hat_g_old = 0;
+    var theta_hat_g_old = 0;
+    var phi_hat_g_old = 0;
 
-    //only displace mouse every 100ms
-    setInterval(moveTheMouse, 100);
-    console.log('connected')
-
-    var i = 0
+    // on message received from client
     ws.on('message', (messageAsString) => {
-      i += 1
-      if (i > 60) {
-        i=0
-        time = Date.now();
-        dt = time - prevTime;
-        prevTime = time;
-  
-        const message = JSON.parse(messageAsString);
 
-        // console.log('a_x: ', message.x, 'a_y:', message.y,  'a_z: ', message.z)
-        // console.log('a_y: ', message.y, message.m_y)
-        // console.log('m_x: ', message.m_x,'m_y: ', message.m_y,'m_z: ', message.m_z)
+      // calculate dataFrequency and packet delta
+      time = Date.now();
+      dt = time - prevTime;
+      prevTime = time;
+
+      // message-wide attitude data
+      var attitude;
+
+      // get JSON contents
+      const message = JSON.parse(messageAsString);
+
+      // check if message was well defined
+      if(message != undefined) {
+        attitude = data.estimateAttitudeComplementary(message.a_x, message.a_y, message.a_z, message.m_x, message.m_y, message.m_z, message.g_x, message.g_y, message.g_z, message.r, message.p, message.q, theta_hat_g_old, phi_hat_g_old, psi_hat_g_old, dt/60);
         
-        var v = data.estimateAttitude(message.x,message.y,message.z, message.m_x,message.m_y,message.m_z)
-        console.log('roll: ', v.roll, 'pitch: ', v.pitch, 'yaw: ', v.yaw)
+        /* old attitude estimation
+        // att = data.estimateAttitude(message.a_x,message.a_y,message.a_z, message.r, message.p, message.q, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, message.g_z, psi_hat, dt/60);
+        */
 
+        // for recursion
+        psi_hat_g_old = attitude.psi_hat_g_old;
+        theta_hat_g_old = attitude.theta_hat_g_old;
+        phi_hat_g_old = attitude.phi_hat_g_old;
+      } else {
+        console.error("Message is undefined!\n");
       }
 
-      // }      
+      // if message contains attitude data
+      //message.roll, message.pitch, message.yaw
+      if(message.roll != undefined && message.yaw != undefined && message.pitch != undefined) {
+        // instantiate kalmann filters for the roll pitch and yaw
+        var kroll = kf_r.filter(message.roll);
+        var kpitch = kf_p.filter(message.pitch);
+        var kyaw = kf_yaw.filter(message.yaw);
+
+        // map the roll pitch and yaw to screen size
+        var disp = data.calculateDisplacement(message.roll, kpitch, kyaw, last_x, last_y);
+
+        // instantiate kalmann filters for displacement
+        var displacement_x = kf_x.filter(disp.d_x);
+        var displacement_y = kf_y.filter(disp.d_y);
+
+        // generally these kalmann filters smoothen out the noise
+
+        // for thresholding
+        if( disp.d_x != undefined && disp.d_x != undefined) {
+          last_x = disp.d_x;
+          last_y = disp.d_x;
+        } else {
+          last_x = 0;
+          last_y = 0;
+        }
+        
+        // move the mouse
+        setMousePosition(displacement_x, displacement_y);
+        if(opt_debug) console.log(message);
+      } else {
+        // else if message contains event data
+        if(message.leftMouseClick) {
+          sendMouseLeftClick();
+        } 
+        if(message.rightMouseClick) {
+          sendMouseRightClick();
+        }
+        if(message.switchTab) {
+          robot.keyTap("tab", "control");
+        }
+        if(message.missionCtrl) {
+          robot.keyTap("tab", "command");
+        }
+        if(message.switchToLaser) {
+          robot.keyTap("l", "control");
+        }
+        if(message.scroll != undefined) {
+          scrollEvent(message.scroll);
+        }
+        if(message.leftArrow) {
+          robot.keyTap("left");
+        }
+        if(message.rightArrow) {
+          robot.keyTap("right");
+        }
+      }
     });  
 });
 
+// on websocket exit
 wss.on("close", () => {
-  clients.delete(ws);
+  console.log("\nWebsocket closed.\n")
 });
 
-function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-console.log("wss up");
+console.log("Web socket online.\n");
