@@ -1,6 +1,2 @@
 # Mouse server and client
-
-## Requirements
-```npm install websocket```
-
-```npm install mathjs```
+Branch moved to: https://github.com/phiahr/accel_mouse
