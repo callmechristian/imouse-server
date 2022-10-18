@@ -55,12 +55,10 @@ wss.on('connection', (ws) => {
       const message = JSON.parse(messageAsString);
 
       // check if message was well defined
+      // Uncomment if you want to do the calculation on the server side
+      /*
       if(message != undefined) {
         attitude = data.estimateAttitudeComplementary(message.a_x, message.a_y, message.a_z, message.m_x, message.m_y, message.m_z, message.g_x, message.g_y, message.g_z, message.r, message.p, message.q, theta_hat_g_old, phi_hat_g_old, psi_hat_g_old, dt/60);
-        
-        /* old attitude estimation
-        // att = data.estimateAttitude(message.a_x,message.a_y,message.a_z, message.r, message.p, message.q, message.m_x,message.m_y,message.m_z, message.g_x, message.g_y, message.g_z, psi_hat, dt/60);
-        */
 
         // for recursion
         psi_hat_g_old = attitude.psi_hat_g_old;
@@ -69,6 +67,7 @@ wss.on('connection', (ws) => {
       } else {
         console.error("Message is undefined!\n");
       }
+       */
 
       // if message contains attitude data
       //message.roll, message.pitch, message.yaw
