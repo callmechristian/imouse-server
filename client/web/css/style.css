@@ -10,3 +10,11 @@ body {
     width: 30px;
     transition: all ease;
 }
+
+.centered {
+    font-size: 14;
+    margin: 0 auto;
+    width: 5em;
+    height: 1em;
+    display: block;
+}
