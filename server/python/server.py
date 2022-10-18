@@ -7,6 +7,7 @@ from screeninfo import get_monitors
 import platform
 import time
 
+# different key for the ctrl key depending if run on windows or mac
 ctrlKey = "command" if platform.uname()[0]=='Darwin' else "ctrl"
 
 width = get_monitors()[0].width
@@ -63,9 +64,7 @@ async def echo(websocket):
             
         else:
             pitch = -data['pitch']
-            yaw = -data['yaw']
-
-            # await websocket.send(message)
+            yaw = data['yaw']
 
             # Dynamic calculation for screen size
             dist_x = round((120/7)*(yaw)+(width/2))
@@ -89,22 +88,3 @@ async def main():
 
 asyncio.run(main())
  
-
-# # create handler for each connection
- 
-# async def handler(websocket, path):
- 
-#     data = await websocket.recv()
-#     print(data)
- 
-#     reply = f"Data recieved as:  {data}!"
- 
-#     # await websocket.send(reply)
- 
- 
- 
-# start_server = websockets.serve(handler, "172.20.10.2", 8000)
-
-# asyncio.get_event_loop().run_until_complete(start_server)
- 
-# asyncio.get_event_loop().run_forever()

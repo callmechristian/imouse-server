@@ -23,9 +23,7 @@ class NetworkManager: NSObject, URLSessionDelegate
     var useEstimatedValues = false
     
     var audioLevel : Float = 0.0
-    
-    var mouseTap = false
-    
+        
     override init(){
         super.init()
         listenVolumeButton()        
@@ -180,8 +178,7 @@ class NetworkManager: NSObject, URLSessionDelegate
             let gyro_roll = self.old_roll + p * self.frequency
             let gyro_pitch = self.old_pitch + q * self.frequency
             
-            
-            
+            // worked better with just the estimated tilt from the accelerometer
             let estimated_pitch = /*k2 * gyro_pitch + (1-k) * */(accel_pitch)
             let estimated_roll = /*k2 * gyro_roll + (1-k) * */(accel_roll)
 
@@ -197,7 +194,6 @@ class NetworkManager: NSObject, URLSessionDelegate
                 self.isCalibrated	 = true
             }
             
-            print(mag_yaw - self.yawBias)
             if(mag_yaw - self.yawBias < -(.pi))
             {
                 mag_yaw += 2 * .pi
@@ -219,7 +215,7 @@ class NetworkManager: NSObject, URLSessionDelegate
             var attitude: Attitude!
             if self.useEstimatedValues
             {
-                attitude = Attitude(roll: estimated_roll, pitch: estimated_pitch, yaw: -estimated_yaw)
+                attitude = Attitude(roll: estimated_roll, pitch: estimated_pitch, yaw: estimated_yaw)
             }
             else
             {
@@ -234,6 +230,10 @@ class NetworkManager: NSObject, URLSessionDelegate
         }
     }
     
+    // DEPRECATED: different function to get the raw sensor data
+    let motion2 = CMMotionManager()
+    var timer: Timer!
+    var old_yaw2 = 0.0
     func startMotionEstimates()
     {
         if self.motion2.isAccelerometerAvailable && self.motion2.isGyroAvailable
@@ -286,86 +286,6 @@ class NetworkManager: NSObject, URLSessionDelegate
             })
         }
         RunLoop.current.add(self.timer, forMode: .default)
-    }
-    
-    let motion2 = CMMotionManager()
-    var timer: Timer!
-    func startAccelerometers() {
-        // Make sure the accelerometer hardware is available.
-        if self.motion2.isAccelerometerAvailable {
-            self.motion2.accelerometerUpdateInterval = frequency  // 60 Hz
-            self.motion2.startAccelerometerUpdates()
-            
-            // Configure a timer to fetch the data.
-            self.timer = Timer(fire: Date(), interval: (frequency),
-                               repeats: true, block: { (timer) in
-                // Get the accelerometer data.
-                if let data = self.motion2.accelerometerData {
-                    let x = data.acceleration.x
-                    let y = data.acceleration.y
-                    let z = data.acceleration.z
-                    let estimated_pitch = asin(-y)
-                    let estimated_roll = atan(-x/z)
-
-                    print("estimated roll: ", estimated_pitch)
-                }
-            })
-            
-            // Add the timer to the current run loop.
-            RunLoop.current.add(self.timer, forMode: .default)
-        }
-    }
-    
-    
-    // Yaw is biased from starting position??
-    var old_yaw2 = 0.0
-    func startGyrometer() {
-        if self.motion2.isGyroAvailable {
-            self.motion2.gyroUpdateInterval = frequency  // 60 Hz
-            self.motion2.startGyroUpdates()
-            
-            // Configure a timer to fetch the data.
-            self.timer = Timer(fire: Date(), interval: (frequency),
-                               repeats: true, block: { (timer) in
-                // Get the accelerometer data.
-                if let data = self.motion2.gyroData {
-                    let x = data.rotationRate.x
-                    let y = -data.rotationRate.y
-                    let z = -data.rotationRate.z
-                    
-                    let estimated_yaw = self.old_yaw2 + z * self.frequency
-                    self.old_yaw2 = estimated_yaw
-
-                    print("estimated yaw: ", estimated_yaw*180 / .pi)
-                }
-            })
-            
-            // Add the timer to the current run loop.
-            RunLoop.current.add(self.timer, forMode: .default)
-        }
-    }
-    
-    func startMagnetometer() {
-        if self.motion2.isMagnetometerAvailable {
-            self.motion2.magnetometerUpdateInterval = frequency  // 60 Hz
-            self.motion2.startMagnetometerUpdates(to: .main, withHandler: {(motion, error) in
-                // Get the accelerometer data.
-                if let data = self.motion2.magnetometerData {
-                    let m_x = data.magneticField.x
-                    let m_y = -data.magneticField.y
-                    let m_z = -data.magneticField.z
-                    var D: Double
-                    D = 2 + (31/60) + (48/3600)
-                    D = D * (.pi/180)
-                    
-                    let nom = cos(self.roll)*m_y - sin(self.roll)*m_z
-                    let denom = cos(self.pitch)*m_x+sin(self.roll)*sin(self.pitch)*m_y+cos(self.roll)*sin(self.pitch)*m_z
-                    
-                    let psi_hat = D-atan(nom/denom)
-                    print("estim yaw: ", psi_hat * (180 / .pi))
-                }
-            })
-        }
     }
     
     //MARK: URLSESSION Protocols
