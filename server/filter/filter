@@ -1,4 +1,0 @@
-I'd like to test a filter with Python and javascript
-First I send the data per 1ms to the js server
-And then the filter in the js server will filter the data
-Finally the results will be written in a json file
