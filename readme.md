@@ -25,13 +25,14 @@ To install the mouse-server, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Install the required dependencies using `npm install`.
-3. Run the server using `npm start`.
+3. Install the app on your iphone using xCode.
+4. Run the server using `npm start`.
 
 ## Usage
 
 To use the mouse-server, follow these steps:
 
-1. Connect your iPhone to the same network as the device running the server. (set the correct IP address)
+1. Connect your iPhone to the same network as the device running the server and open tha app. (set the correct IP address)
 3. Calibrate the accelerometer by pressing the "Calibrate" button on app.
 4. Enjoy. Pilot presentation was done using this as a laser pointer :)
 
